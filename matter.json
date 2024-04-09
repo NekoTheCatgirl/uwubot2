@@ -1,0 +1,15 @@
+{
+    "normal": {
+        "base_chance": 5,
+        "long_form": [
+            "UwU What are you doing~ [User]",
+            "How are you doing [User] UwU",
+            "Get UwU'd neeeeerd [User]",
+            "What are you doing Step-UwU?"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    }
+}
