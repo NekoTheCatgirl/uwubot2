@@ -1,11 +1,10 @@
-use chrono::{TimeZone, Utc};
 use rand::Rng;
-use serenity::all::{Context, Message};
+use serenity::all::Message;
 
 use crate::{matter::MatterTrait, BANNED};
 
 /// Checks if the message function should trigger.
-pub async fn trigger_check(rng: &mut impl Rng, matter: &impl MatterTrait, ctx: &Context, message: &Message) -> bool {
+pub async fn trigger_check(rng: &mut impl Rng, matter: &impl MatterTrait, message: &Message) -> bool {
     if rng.gen_range(0..=100) <= matter.get_chance()
         && BANNED
             .lock()

@@ -1,18 +1,15 @@
 mod banned;
 mod checks;
 mod commands;
-mod happy_birthday;
 mod leaderboard;
-mod long_form;
+mod logger;
 mod matter;
 mod users;
-mod logger;
 
 use checks::trigger_check;
 use lazy_static::lazy_static;
 use log::{error, info};
 use logger::setup_logger;
-use long_form::get_options;
 use matter::{get_theme_based_on_date, MatterDict, MatterTrait};
 use rand::rngs::OsRng;
 use rand::Rng;
@@ -26,7 +23,6 @@ use tokio::sync::Mutex;
 
 use crate::banned::BannedChannels;
 use crate::commands::register;
-use crate::happy_birthday::happy_birthday_loop;
 use crate::leaderboard::Leaderboard;
 use crate::users::UserDatabase;
 
@@ -65,7 +61,11 @@ async fn message_fn(ctx: Context, message: Message) {
     {
         {
             let user_db = USER_DATABASE.lock().await;
-            if let Some(user) = user_db.users.iter().find(|user| user.uuid == message.author.id.get()) {
+            if let Some(user) = user_db
+                .users
+                .iter()
+                .find(|user| user.uuid == message.author.id.get())
+            {
                 if user.likes_uwu == false {
                     return;
                 }
@@ -75,7 +75,7 @@ async fn message_fn(ctx: Context, message: Message) {
         let theme = get_theme_based_on_date(message.author.id.get()).await;
         let true_matter = matter.get(theme).unwrap();
         let mut rng = OsRng;
-        if trigger_check(&mut rng, true_matter, &ctx, &message).await {
+        if trigger_check(&mut rng, true_matter, &message).await {
             if message.author.id == 248835673669369856 || message.author.id == 267245400363106304 {
                 return;
             }
@@ -101,7 +101,6 @@ async fn message_fn(ctx: Context, message: Message) {
                 }
             } else {
                 // Long form message
-                let options = get_options().await.unwrap();
                 msg = true_matter.get_long(&mut rng);
                 msg = msg.replace("[User]", &message.author.name);
                 if let Err(why) = message.reply_ping(&ctx.http, msg).await {
@@ -162,8 +161,6 @@ async fn ready_fn(ctx: Context, ready: Ready) {
     info!("{} is connected!", ready.user.name);
 
     register(&ctx).await;
-
-    tokio::spawn(happy_birthday_loop(ctx)).await.unwrap();
 }
 
 #[tokio::main]

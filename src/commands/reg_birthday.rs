@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use chrono::{NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use serenity::builder::*;
 use serenity::model::prelude::*;
@@ -31,7 +31,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
                 name,
                 value: ResolvedValue::String(value),
                 ..
-            } => match name.as_str() {
+            } => match name {
                 "date" => {
                     date = Some(value.to_owned());
                 }
@@ -46,9 +46,9 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
                 name,
                 value: ResolvedValue::Boolean(value),
                 ..
-            } => match name.as_str() {
+            } => match name {
                 "enjoyer" => {
-                    enjoyer = Some(*value);
+                    enjoyer = Some(value);
                 }
                 _ => {}
             },
@@ -59,29 +59,29 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
     // Validate that all required options are present
     let date = match date {
         Some(d) => d,
-        None => return Err(serenity::Error::from("Missing date option")),
+        None => return Ok(()),
     };
     
     let tzone = match tzone {
         Some(tz) => tz,
-        None => return Err(serenity::Error::from("Missing or invalid timezone option")),
+        None => return Ok(()),
     };
 
     let enjoyer = match enjoyer {
         Some(e) => e,
-        None => return Err(serenity::Error::from("Missing enjoyer option")),
+        None => return Ok(()),
     };
 
     // Parse the date string into a NaiveDateTime
     let naive = match NaiveDateTime::parse_from_str(&date, "%Y-%m-%d %H:%M:%S") {
         Ok(dt) => dt,
-        Err(_) => return Err(serenity::Error::from("Failed to parse date string")),
+        Err(_) => return Ok(()),
     };
 
     // Combine with the timezone
     let datetime = match tzone.from_local_datetime(&naive).single() {
         Some(dt) => dt,
-        None => return Err(serenity::Error::from("Failed to combine date with timezone")),
+        None => return Ok(()),
     };
 
     // Convert to UTC
