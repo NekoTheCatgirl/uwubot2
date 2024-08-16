@@ -1,13 +1,13 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use tokio::{fs::File, io::AsyncWriteExt};
 use std::fs;
+use tokio::{fs::File, io::AsyncWriteExt};
 
 /// Track user data. Only if the user consented by giving Birthday info.
 
 #[derive(Serialize, Deserialize)]
 pub struct UserDatabase {
-    pub users: Vec<UserData>
+    pub users: Vec<UserData>,
 }
 
 const USERS_DATABASE: &str = "users.json";
@@ -18,14 +18,10 @@ impl UserDatabase {
             if let Ok(banned) = serde_json::from_str(&contents) {
                 banned
             } else {
-                UserDatabase {
-                    users: Vec::new(),
-                }
+                UserDatabase { users: Vec::new() }
             }
         } else {
-            UserDatabase {
-                users: Vec::new(),
-            }
+            UserDatabase { users: Vec::new() }
         }
     }
 

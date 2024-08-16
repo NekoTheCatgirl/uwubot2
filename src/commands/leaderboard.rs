@@ -20,13 +20,13 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
             CreateEmbed::new()
                 .title(format!("{username}")) 
                 .description(format!("Has been uwu'd {count} times"))
-                .footer(CreateEmbedFooter::new("UwU bot, provided to you by HellFireNeko"))
+                .footer(CreateEmbedFooter::new("UwU bot, provided to you by Neko"))
                 .color(Colour::FABLED_PINK)
         } else {
             CreateEmbed::new()
                 .title("Not found")
                 .description("That user has yet to be cursed by me!")
-                .footer(CreateEmbedFooter::new("UwU bot, provided to you by HellFireNeko"))
+                .footer(CreateEmbedFooter::new("UwU bot, provided to you by Neko"))
                 .color(Colour::FABLED_PINK)
         };
         interaction.edit_response(
@@ -50,7 +50,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
             .title("Leaderboard")
             .description(format!("Total uwu's delivered {total}"))
             .fields(fields_vec)
-            .footer(CreateEmbedFooter::new("UwU bot, provided to you by HellFireNeko"))
+            .footer(CreateEmbedFooter::new("UwU bot, provided to you by Neko"))
             .color(Colour::FABLED_PINK);
         interaction.edit_response(
             &ctx.http,

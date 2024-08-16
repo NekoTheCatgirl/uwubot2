@@ -1,42 +1,36 @@
-mod long_form;
-mod leaderboard;
 mod banned;
-mod commands;
 mod checks;
-mod users;
-mod matter;
+mod commands;
 mod happy_birthday;
+mod leaderboard;
+mod long_form;
+mod matter;
+mod users;
 
 use checks::trigger_check;
-use log::{ error, info };
+use lazy_static::lazy_static;
+use log::{error, info};
 use long_form::get_options;
 use rand::rngs::OsRng;
 use rand::Rng;
-use serenity::all::{ CreateInteractionResponse, CreateInteractionResponseMessage, Interaction };
+use serenity::all::{CreateInteractionResponse, CreateInteractionResponseMessage, Interaction};
 use serenity::async_trait;
 use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
 use serenity::prelude::*;
-use lazy_static::lazy_static;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-use crate::commands::register;
 use crate::banned::BannedChannels;
+use crate::commands::register;
 use crate::happy_birthday::happy_birthday_loop;
 use crate::leaderboard::Leaderboard;
 use crate::users::UserDatabase;
 
 lazy_static! {
-    static ref LEADERBOARD: Arc<Mutex<Leaderboard>> = Arc::new(
-        Mutex::new(Leaderboard::load())
-    );
-    static ref BANNED: Arc<Mutex<BannedChannels>> = Arc::new(
-        Mutex::new(BannedChannels::load())
-    );
-    static ref USER_DATABASE: Arc<Mutex<UserDatabase>> = Arc::new(
-        Mutex::new(UserDatabase::load())
-    );
+    static ref LEADERBOARD: Arc<Mutex<Leaderboard>> = Arc::new(Mutex::new(Leaderboard::load()));
+    static ref BANNED: Arc<Mutex<BannedChannels>> = Arc::new(Mutex::new(BannedChannels::load()));
+    static ref USER_DATABASE: Arc<Mutex<UserDatabase>> = Arc::new(Mutex::new(UserDatabase::load()));
 }
 
 const TOKEN: &str = include_str!("../token.tok");
@@ -66,9 +60,8 @@ const INNER: &[char] = &['w', 'W'];
 
 async fn message_fn(ctx: Context, message: Message) {
     // Handle messages:
-    if
-        message.author.bot == false &&
-        message.channel(&ctx.http).await.unwrap().guild().is_none() == false
+    if message.author.bot == false
+        && message.channel(&ctx.http).await.unwrap().guild().is_none() == false
     {
         let mut rng = OsRng;
         if trigger_check(&mut rng, &ctx, &message).await {
@@ -154,7 +147,9 @@ async fn ready_fn(ctx: Context, ready: Ready) {
 
 #[tokio::main]
 async fn main() {
-    env_logger::builder().filter_level(log::LevelFilter::Error).init();
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Error)
+        .init();
 
     {
         let _ = BANNED.lock().await.save().await;
@@ -162,13 +157,13 @@ async fn main() {
         let _ = USER_DATABASE.lock().await.save().await;
     }
 
-    let intents =
-        GatewayIntents::GUILD_MESSAGES |
-        GatewayIntents::DIRECT_MESSAGES |
-        GatewayIntents::MESSAGE_CONTENT;
+    let intents = GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::DIRECT_MESSAGES
+        | GatewayIntents::MESSAGE_CONTENT;
 
     let mut client = Client::builder(&TOKEN, intents)
-        .event_handler(Handler).await
+        .event_handler(Handler)
+        .await
         .expect("Err creating client");
 
     if let Err(why) = client.start().await {

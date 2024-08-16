@@ -1,7 +1,7 @@
-use tokio::{ fs::File, io::AsyncWriteExt };
+use tokio::{fs::File, io::AsyncWriteExt};
 
+use serde::{Deserialize, Serialize};
 use std::fs;
-use serde::{ Deserialize, Serialize };
 
 const BANNED_FILE: &str = "banned.json";
 

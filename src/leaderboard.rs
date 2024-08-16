@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use tokio::{ fs::File, io::AsyncWriteExt };
+use tokio::{fs::File, io::AsyncWriteExt};
 
+use serde::{Deserialize, Serialize};
 use std::fs;
-use serde::{ Deserialize, Serialize };
 
 const LEADER_FILE: &str = "leaderboard.json";
 
