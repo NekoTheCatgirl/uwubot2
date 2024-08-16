@@ -165,7 +165,7 @@ async fn ready_fn(ctx: Context, ready: Ready) {
 
 #[tokio::main]
 async fn main() {
-    setup_logger(log::LevelFilter::Debug);
+    setup_logger(log::LevelFilter::Error);
 
     {
         let _ = BANNED.lock().await.save().await;

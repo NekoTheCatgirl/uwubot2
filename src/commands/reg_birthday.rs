@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
-use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
-use chrono_tz::Tz;
+use chrono::{DateTime, NaiveDate, Utc};
+use log::error;
 use serenity::builder::*;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
@@ -21,7 +21,6 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
     let options = interaction.data.options();
 
     let mut date: Option<String> = None;
-    let mut tzone: Option<Tz> = None;
     let mut enjoyer: Option<bool> = None;
 
     // Extract options
@@ -34,11 +33,6 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
             } => match name {
                 "date" => {
                     date = Some(value.to_owned());
-                }
-                "timezone" => {
-                    if let Ok(parsed_tz) = Tz::from_str(value) {
-                        tzone = Some(parsed_tz);
-                    }
                 }
                 _ => {}
             },
@@ -59,41 +53,44 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
     // Validate that all required options are present
     let date = match date {
         Some(d) => d,
-        None => return Ok(()),
-    };
-    
-    let tzone = match tzone {
-        Some(tz) => tz,
-        None => return Ok(()),
+        None => {
+            if let Err(e) = interaction.edit_response(&ctx.http, EditInteractionResponse::new().content("Something went wrong")).await {
+                error!("Something went wrong {e:?}");
+            }
+            return Ok(())
+        },
     };
 
     let enjoyer = match enjoyer {
         Some(e) => e,
-        None => return Ok(()),
-    };
-
-    // Parse the date string into a NaiveDateTime
-    let naive = match NaiveDateTime::parse_from_str(&date, "%Y-%m-%d %H:%M:%S") {
-        Ok(dt) => dt,
-        Err(_) => return Ok(()),
+        None => {
+            if let Err(e) = interaction.edit_response(&ctx.http, EditInteractionResponse::new().content("Something went wrong")).await {
+                error!("Something went wrong {e:?}");
+            }
+            return Ok(())
+        },
     };
 
     // Combine with the timezone
-    let datetime = match tzone.from_local_datetime(&naive).single() {
-        Some(dt) => dt,
-        None => return Ok(()),
-    };
-
-    // Convert to UTC
-    let utc: DateTime<Utc> = datetime.with_timezone(&Utc);
+    let naive_date = NaiveDate::from_str(&date)
+        .expect("Failed to parse date string");
+    let datetime: DateTime<Utc> = DateTime::<Utc>::from_naive_utc_and_offset(naive_date.and_hms_opt(0, 0, 0).unwrap(), Utc);
 
     // Interact with the database
     let mut database = USER_DATABASE.lock().await;
     database.add_user(UserData {
         uuid: interaction.user.id.get(),
         likes_uwu: enjoyer,
-        birthday: utc,
+        birthday: datetime,
     });
+
+    database.save().await.unwrap();
+
+    drop(database);
+
+    if let Err(e) = interaction.edit_response(&ctx.http, EditInteractionResponse::new().content("Done!")).await {
+        error!("Something went wrong {e:?}");
+    }
 
     Ok(())
 }
@@ -114,14 +111,6 @@ pub fn register() -> CreateCommand {
                 CommandOptionType::String,
                 "date",
                 "The day you were born (yyyy-mm-dd)",
-            )
-            .required(true),
-        )
-        .add_option(
-            CreateCommandOption::new(
-                CommandOptionType::String,
-                "timezone",
-                "The timezone you live in. (eg: EST, CEST. Alt UTC works)",
             )
             .required(true),
         )
