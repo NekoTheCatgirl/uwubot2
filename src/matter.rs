@@ -3,7 +3,41 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tokio::fs;
 
+use crate::USER_DATABASE;
+
 const MATTER_FILE: &str = "matter.json";
+
+pub async fn get_theme_based_on_date(uuid: u64) -> &'static str {
+    let now_utc = Utc::now();
+    let now_local = Local::now();
+    let month = now_local.month();
+    let day = now_local.day();
+
+    // Fetch user data
+    let user_database = USER_DATABASE.lock().await;
+    let user_data = user_database.users.iter().find(|user| user.uuid == uuid);
+
+    if let Some(user) = user_data {
+
+        let user_tz = user.birthday.timezone();
+        let user_local_time = user_tz.from_utc_datetime(&now_utc.naive_utc());
+        if user_local_time.month() == month && user_local_time.day() == day {
+            return "birthday";
+        }
+    }
+
+    match (month, day) {
+        (12, 24..=31) => "christmas",
+        (10, 31) => "halloween",
+        (2, 14) => "valentines",
+        (7, 4) => "fourth_of_july",
+        (3, 17) => "st_patricks",
+        (9..=11, _) => "autumn",
+        (6..=8, _) => "summer",
+        (12 | 1 | 2, _) => "winter",
+        _ => "normal",
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct MatterDict {

@@ -1,0 +1,145 @@
+{
+    "normal": {
+        "base_chance": 2,
+        "long_form": [
+            "UwU What are you doing~ [User]",
+            "How are you doing [User] UwU",
+            "Get UwU'd neeeeerd [User]",
+            "What are you doing Step-UwU?"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "easter": {
+        "base_chance": 2,
+        "long_form": [
+            "Hoppy Easter, [User]! UwU",
+            "You're egg-cellent, [User] UwU",
+            "Spring has sprung, [User] UwU",
+            "Easter Bunny UwU delivering cuteness to [User]!"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "halloween": {
+        "base_chance": 2,
+        "long_form": [
+            "Boo! Did I spook you, [User]? UwU",
+            "Happy Howl-o-ween, [User] UwU",
+            "Trick or treat, [User]! UwU",
+            "You're fang-tastic, [User]! UwU"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "christmas": {
+        "base_chance": 2,
+        "long_form": [
+            "Merry ChristmUwUs, [User]!",
+            "Ho Ho Ho, [User]! UwU",
+            "You're on the nice list, [User]! UwU",
+            "Happy Holidays, [User]! UwU"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "valentines": {
+        "base_chance": 2,
+        "long_form": [
+            "Be my UwU-tine, [User]! ❤️",
+            "You're the sweet to my UwU, [User]! 💕",
+            "Sending love and UwUs to [User]!",
+            "You're my one and only UwU, [User]!"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "new_year": {
+        "base_chance": 2,
+        "long_form": [
+            "Happy New Year, [User]! UwU",
+            "Cheers to a UwU year ahead, [User]!",
+            "New year, new UwUs for [User]!",
+            "May your year be filled with UwUs, [User]!"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "st_patricks": {
+        "base_chance": 2,
+        "long_form": [
+            "Luck of the UwU-rish to you, [User]!",
+            "You're my lucky charm, [User]! UwU",
+            "Feeling green and UwU, [User]?",
+            "Happy St. Patrick's UwU, [User]!"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "autumn": {
+        "base_chance": 2,
+        "long_form": [
+            "Falling for you, [User]! UwU",
+            "Sweater weather and UwUs, [User]!",
+            "Pumpkin spice and UwU nice, [User]!",
+            "Crunchy leaves and UwUs for [User]!"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "summer": {
+        "base_chance": 2,
+        "long_form": [
+            "Summer sunshine and UwUs, [User]!",
+            "You're hot like summer, [User]! UwU",
+            "Beach vibes and UwUs for [User]!",
+            "Stay cool and UwU, [User]!"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "winter": {
+        "base_chance": 2,
+        "long_form": [
+            "Stay warm, [User]! UwU",
+            "Snowy days and UwUs for [User]!",
+            "You're snow amazing, [User]! UwU",
+            "Let it snow UwUs, [User]!"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    },
+    "birthday": {
+        "base_chance": 4,
+        "long_form": [
+            "Happy Birthday, [User]! UwU 🎉",
+            "Wishing you a day full of UwUs, [User]!",
+            "You’re one year more awesome, [User]! UwU",
+            "Have a fantastic birthday, [User]! UwU"
+        ],
+        "permutation": {
+            "inner": ["w", "W", "m", "M"],
+            "outer": ["o", "O", "u", "U", "-", "x", "X", "<", ">"]
+        }
+    }
+}

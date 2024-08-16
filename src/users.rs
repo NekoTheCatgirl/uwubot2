@@ -24,6 +24,18 @@ impl UserDatabase {
             UserDatabase { users: Vec::new() }
         }
     }
+    
+    pub fn add_user(&mut self, new_user: UserData) {
+        // Check if a user with the same UUID exists
+        if let Some(existing_user) = self.users.iter_mut().find(|user| user.uuid == new_user.uuid) {
+            // Update the existing user's information
+            existing_user.likes_uwu = new_user.likes_uwu;
+            existing_user.birthday = new_user.birthday;
+        } else {
+            // Add the new user if no existing user with the same UUID is found
+            self.users.push(new_user);
+        }
+    }
 
     pub async fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
         let contents = serde_json::to_string(self)?;

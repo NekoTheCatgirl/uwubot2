@@ -1,38 +1,114 @@
+use std::str::FromStr;
+
+use chrono::{NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use serenity::builder::*;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
+use crate::users::UserData;
+use crate::USER_DATABASE;
+
 pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), serenity::Error> {
+    // Defer the response
     interaction
         .create_response(
             &ctx.http,
             CreateInteractionResponse::Defer(CreateInteractionResponseMessage::new()),
         )
         .await?;
+
     let options = interaction.data.options();
-    let mut date: String;
-    let mut tzone: Tz;
+
+    let mut date: Option<String> = None;
+    let mut tzone: Option<Tz> = None;
+    let mut enjoyer: Option<bool> = None;
+
+    // Extract options
     for opt in options {
         match opt {
             ResolvedOption {
                 name,
                 value: ResolvedValue::String(value),
                 ..
-            } => match name {
-                "date" => {}
-                "timezone" => {}
+            } => match name.as_str() {
+                "date" => {
+                    date = Some(value.to_owned());
+                }
+                "timezone" => {
+                    if let Ok(parsed_tz) = Tz::from_str(value) {
+                        tzone = Some(parsed_tz);
+                    }
+                }
+                _ => {}
+            },
+            ResolvedOption {
+                name,
+                value: ResolvedValue::Boolean(value),
+                ..
+            } => match name.as_str() {
+                "enjoyer" => {
+                    enjoyer = Some(*value);
+                }
                 _ => {}
             },
             _ => {}
         }
     }
+
+    // Validate that all required options are present
+    let date = match date {
+        Some(d) => d,
+        None => return Err(serenity::Error::from("Missing date option")),
+    };
+    
+    let tzone = match tzone {
+        Some(tz) => tz,
+        None => return Err(serenity::Error::from("Missing or invalid timezone option")),
+    };
+
+    let enjoyer = match enjoyer {
+        Some(e) => e,
+        None => return Err(serenity::Error::from("Missing enjoyer option")),
+    };
+
+    // Parse the date string into a NaiveDateTime
+    let naive = match NaiveDateTime::parse_from_str(&date, "%Y-%m-%d %H:%M:%S") {
+        Ok(dt) => dt,
+        Err(_) => return Err(serenity::Error::from("Failed to parse date string")),
+    };
+
+    // Combine with the timezone
+    let datetime = match tzone.from_local_datetime(&naive).single() {
+        Some(dt) => dt,
+        None => return Err(serenity::Error::from("Failed to combine date with timezone")),
+    };
+
+    // Convert to UTC
+    let utc: DateTime<Utc> = datetime.with_timezone(&Utc);
+
+    // Interact with the database
+    let mut database = USER_DATABASE.lock().await;
+    database.add_user(UserData {
+        uuid: interaction.user.id.get(),
+        likes_uwu: enjoyer,
+        birthday: utc,
+    });
+
     Ok(())
 }
 
 pub fn register() -> CreateCommand {
     CreateCommand::new("birthday")
         .description("Registers your birthday!")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::Boolean,
+                "enjoyer",
+                "Are you a enjoyer of uwu?",
+            )
+            .required(true),
+        )
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::String,
