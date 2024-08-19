@@ -4,7 +4,6 @@ mod commands;
 mod leaderboard;
 mod logger;
 mod matter;
-mod users;
 
 use checks::trigger_check;
 use lazy_static::lazy_static;
@@ -24,12 +23,10 @@ use tokio::sync::Mutex;
 use crate::banned::BannedChannels;
 use crate::commands::register;
 use crate::leaderboard::Leaderboard;
-use crate::users::UserDatabase;
 
 lazy_static! {
     static ref LEADERBOARD: Arc<Mutex<Leaderboard>> = Arc::new(Mutex::new(Leaderboard::load()));
     static ref BANNED: Arc<Mutex<BannedChannels>> = Arc::new(Mutex::new(BannedChannels::load()));
-    static ref USER_DATABASE: Arc<Mutex<UserDatabase>> = Arc::new(Mutex::new(UserDatabase::load()));
 }
 
 const TOKEN: &str = include_str!("../token.tok");
@@ -56,23 +53,10 @@ impl EventHandler for Handler {
 
 async fn message_fn(ctx: Context, message: Message) {
     // Handle messages:
-    if message.author.bot == false
-        && message.channel(&ctx.http).await.unwrap().guild().is_none() == false
+    if !message.author.bot && message.channel(&ctx.http).await.unwrap().guild().is_some()
     {
-        {
-            let user_db = USER_DATABASE.lock().await;
-            if let Some(user) = user_db
-                .users
-                .iter()
-                .find(|user| user.uuid == message.author.id.get())
-            {
-                if user.likes_uwu == false {
-                    return;
-                }
-            }
-        }
         let matter = MatterDict::load().await.unwrap();
-        let theme = get_theme_based_on_date(message.author.id.get()).await;
+        let theme = get_theme_based_on_date().await;
         let true_matter = matter.get(theme).unwrap();
         let mut rng = OsRng;
         if trigger_check(&mut rng, true_matter, &message).await {
@@ -137,12 +121,6 @@ async fn interaction_create_fn(ctx: Context, interaction: Interaction) {
                 }
                 None
             }
-            "birthday" => {
-                if let Err(err) = commands::reg_birthday::run(&ctx, &command).await {
-                    error!("Failed to execute 'birthday' command: {:?}", err);
-                }
-                None
-            }
             _ => Some("Not implemented yet >:<".to_string()),
         };
 
@@ -170,14 +148,13 @@ async fn main() {
     {
         let _ = BANNED.lock().await.save().await;
         let _ = LEADERBOARD.lock().await.save().await;
-        let _ = USER_DATABASE.lock().await.save().await;
     }
 
     let intents = GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
-    let mut client = Client::builder(&TOKEN, intents)
+    let mut client = Client::builder(TOKEN, intents)
         .event_handler(Handler)
         .await
         .expect("Err creating client");
