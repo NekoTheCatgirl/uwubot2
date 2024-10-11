@@ -4,15 +4,17 @@ mod commands;
 mod leaderboard;
 mod logger;
 mod matter;
+mod immune;
 
 use checks::trigger_check;
+use immune::ImmuneUsers;
 use lazy_static::lazy_static;
-use log::{error, info};
+use log::{error, info, warn};
 use logger::setup_logger;
 use matter::{get_theme_based_on_date, MatterDict, MatterTrait};
 use rand::rngs::OsRng;
 use rand::Rng;
-use serenity::all::{CreateInteractionResponse, CreateInteractionResponseMessage, Interaction};
+use serenity::all::{CreateInteractionResponse, CreateInteractionResponseMessage, Entitlement, Interaction};
 use serenity::async_trait;
 use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
@@ -27,6 +29,7 @@ use crate::leaderboard::Leaderboard;
 lazy_static! {
     static ref LEADERBOARD: Arc<Mutex<Leaderboard>> = Arc::new(Mutex::new(Leaderboard::load()));
     static ref BANNED: Arc<Mutex<BannedChannels>> = Arc::new(Mutex::new(BannedChannels::load()));
+    static ref IMMUNE: Arc<Mutex<ImmuneUsers>> = Arc::new(Mutex::new(ImmuneUsers::load()));
 }
 
 const TOKEN: &str = include_str!("../token.tok");
@@ -45,6 +48,10 @@ impl EventHandler for Handler {
         interaction_create_fn(ctx, interaction).await;
     }
 
+    async fn entitlement_create(&self, ctx: Context, entitlement: Entitlement) {
+        entitlement_create_fn(ctx, entitlement).await;
+    }
+
     async fn ready(&self, ctx: Context, ready: Ready) {
         // Handle registration:
         ready_fn(ctx, ready).await;
@@ -55,6 +62,14 @@ async fn message_fn(ctx: Context, message: Message) {
     // Handle messages:
     if !message.author.bot && message.channel(&ctx.http).await.unwrap().guild().is_some()
     {
+        let userid = message.author.id.get();
+        let immune = {
+            let immune = IMMUNE.lock().await;
+            immune.users.contains(&userid)
+        };
+        if immune {
+            return;
+        }
         let matter = MatterDict::load().await.unwrap();
         let theme = get_theme_based_on_date().await;
         let true_matter = matter.get(theme).unwrap();
@@ -134,6 +149,68 @@ async fn interaction_create_fn(ctx: Context, interaction: Interaction) {
     }
 }
 
+async fn entitlement_create_fn(ctx: Context, entitlement: Entitlement) {
+    let skuid = entitlement.sku_id.get();
+    match skuid {
+        // Support the dev
+        1284843842947907667 => {
+            // Send out a thank you
+            let user_id = entitlement.user_id.unwrap();
+            let user = match ctx.http.get_user(user_id).await {
+                Ok(user) => user,
+                Err(why) => {
+                    error!("Couldnt grab the user: {why}");
+                    return;
+                }
+            };
+            let channel = match user.create_dm_channel(&ctx.http).await {
+                Ok(channel) => channel,
+                Err(why) => {
+                    error!("Couldnt create a private channel: {why}");
+                    return;
+                }
+            };
+            if let Err(why) = channel.say(&ctx.http, "Thank you so much for supporting the continued development and hosting of this bot!").await {
+                error!("Couldnt send thank you to the user {user_id}, {why}");
+            }
+        }
+        // Immunity permanent
+        1284845359994110043 => {
+            let user_id = entitlement.user_id.unwrap();
+            // Make the user immune
+            {
+                let mut immune = IMMUNE.lock().await;
+                immune.users.push(user_id.get());
+                if let Err(why) = immune.save().await {
+                    error!("Coudlnt save the immune file! {why}");
+                }
+            }
+            // Send out a thank you
+            let user = match ctx.http.get_user(user_id).await {
+                Ok(user) => user,
+                Err(why) => {
+                    error!("Couldnt grab the user: {why}");
+                    return;
+                }
+            };
+            let channel = match user.create_dm_channel(&ctx.http).await {
+                Ok(channel) => channel,
+                Err(why) => {
+                    error!("Couldnt create a private channel: {why}");
+                    return;
+                }
+            };
+            if let Err(why) = channel.say(&ctx.http, "Thank you for purchasing the immunity card. This is not reversable and you will now never be messaged randomly in guilds.").await {
+                error!("Couldnt send thank you to the user {user_id}, {why}");
+            }
+        }
+        _ => {
+            // Invalid skuid
+            warn!("Invalid skuid recieved");
+        }
+    }
+}
+
 async fn ready_fn(ctx: Context, ready: Ready) {
     // Handle registration:
     info!("{} is connected!", ready.user.name);
@@ -148,8 +225,9 @@ async fn main() {
     {
         let _ = BANNED.lock().await.save().await;
         let _ = LEADERBOARD.lock().await.save().await;
+        let _ = IMMUNE.lock().await.save().await;
     }
-
+        
     let intents = GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;

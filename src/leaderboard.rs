@@ -9,6 +9,7 @@ const LEADER_FILE: &str = "leaderboard.json";
 
 #[derive(Serialize, Deserialize)]
 pub struct Leaderboard {
+    pub last_cleared_by: u64,
     pub total_uwu: u128,
     pub leaderboard: HashMap<u64, u32>,
 }
@@ -20,12 +21,14 @@ impl Leaderboard {
                 leaderboard
             } else {
                 Leaderboard {
+                    last_cleared_by: 0,
                     total_uwu: 0,
                     leaderboard: HashMap::new(),
                 }
             }
         } else {
             Leaderboard {
+                last_cleared_by: 0,
                 total_uwu: 0,
                 leaderboard: HashMap::new(),
             }

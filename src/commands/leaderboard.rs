@@ -34,7 +34,19 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
             EditInteractionResponse::new().add_embed(embed)
         ).await?;
     } else {
-        let (total, top) = LEADERBOARD.lock().await.get_top_10();
+        let (total, top, clearuser) = 
+        {
+            let leaderboard = LEADERBOARD.lock().await;
+            let clearuser = {
+                if let Ok(user) = ctx.http.get_user(leaderboard.last_cleared_by.into()).await {
+                    user.name
+                } else {
+                    "unknown_user".into()
+                }
+            };
+            let (total, top) = leaderboard.get_top_10();
+            (total, top, clearuser)
+        };
         let mut fields_vec = Vec::new();
         for (user, count) in top {
             let username = {
@@ -48,7 +60,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
         }
         let embed = CreateEmbed::new()
             .title("Leaderboard")
-            .description(format!("Total uwu's delivered {total}"))
+            .description(format!("Total uwu's delivered {total} last cleared by {clearuser}"))
             .fields(fields_vec)
             .footer(CreateEmbedFooter::new("UwU bot, provided to you by Neko"))
             .color(Colour::FABLED_PINK);
